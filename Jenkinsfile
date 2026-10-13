@@ -12,19 +12,15 @@ pipeline {
         stage('Checkout') {
             steps { checkout scm }
         }
-
         stage('Build & Unit Tests') {
-            agent {
-                docker {
-                    image 'python:3.12-slim'
-                    args '-e HOME=/tmp'
-                    reuseNode true
-                }
-            }
             steps {
                 sh '''
-                    pip install --no-cache-dir -r requirements.txt pytest
-                    python -m pytest -v
+                    CID=$(docker create -w /app python:3.12-slim sh -c "pip install --no-cache-dir -r requirements.txt pytest && python -m pytest -v")
+                    docker cp . $CID:/app
+                    RC=0
+                    docker start -a $CID || RC=$?
+                    docker rm $CID
+                    exit $RC
                 '''
             }
         }
