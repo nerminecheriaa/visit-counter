@@ -1,0 +1,25 @@
+services:
+  web:
+    image: counter-app:1.0
+    build: .
+    ports:
+      - "${WEB_PORT}:5000"
+    depends_on:
+      - db-service
+    networks:
+      - app-network
+
+  db-service:
+    image: redis:alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  redis-data:
